@@ -1,30 +1,38 @@
 module.exports = {
     /** @param {Creep} creep**/
     run: function(creep){
-        if(creep.memory.isWorking && creep.store[RESOURCE_ENERGY] === 0) {
+        if(creep.memory.isWorking && creep.store[creep.memory.resource] === 0) {
             creep.memory.isWorking = false;
             creep.say('withdraw');
 	    }
-	    if(!creep.memory.isWorking && creep.store[RESOURCE_ENERGY] === creep.store.getCapacity()) {
+	    if(!creep.memory.isWorking && creep.store[creep.memory.resource] === creep.store.getCapacity()) {
 	        creep.memory.isWorking = true;
 	        creep.say('transfer');
 	    }
         
-        if(creep.memory.isWorking) {
-            var target = Game.getObjectById(creep.memory.target)
-            if(creep.pos.isNearTo(target)){
-                creep.transfer(target, RESOURCE_ENERGY)
+        if(!creep.memory.to || !creep.memory.from){
+            creep.say("❗");
+        } else if(creep.memory.isWorking) {
+            var to = Game.getObjectById(creep.memory.to)
+            if(!!to){
+                if(creep.pos.isNearTo(to) == false){
+                    creep.moveTo(to);
+                }
+                creep.transfer(to, creep.memory.resource)
             }
-            else{
-                creep.moveTo(target);
+            else {
+                creep.memory.to = undefined;
             }
         } else {
-            var depot = Game.getObjectById(creep.memory.depot)
-            if(creep.pos.isNearTo(depot) == false){
-                creep.moveTo(depot);
+            var from = Game.getObjectById(creep.memory.from)
+            if(!!from) {
+                if(creep.pos.isNearTo(from) == false){
+                    creep.moveTo(from);
+                }
+                creep.withdraw(from, creep.memory.resource)
             }
-            if(depot != null){
-                creep.withdraw(depot, RESOURCE_ENERGY)
+            else {
+                creep.memory.from = undefined;
             }
         }
     }

@@ -1,91 +1,80 @@
-module.exports = function(){
-    if(!Memory.creepCount){
-        Memory.creepCount = 0;
-    }
-    
-    StructureSpawn.prototype.spawnStarter = function(targetId) {
-        var depotId = this;
+module.exports = function(){    
+    StructureSpawn.prototype.spawnStarter = function(fromId, toId) {
+        console.log("Spawn starter");
         
         this.spawnCreep(
             [WORK, CARRY, MOVE, MOVE], 
-            "starter"+Memory.creepCount,
+            "starter"+Date.now(),
             {memory:{
                 role: "starter",
-                target: targetId,
-                depot: depotId,
+                from: fromId,
+                to: toId,
                 isWorking: false
                 }
             }
         )
-        Memory.creepCount++;
     }
 
     
-    StructureSpawn.prototype.spawnHarvester = function(targetId) {
-        var depotId = 'null'
-        
-        // if storage near source exists set it as depot
-        var depot = Game.getObjectById(targetId).pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_CONTAINER});
-        
-        if(depot != null){
-            depotId = depot.id;
-        }
-        
+    StructureSpawn.prototype.spawnHarvester = function(fromId, toId, setUp) {
+        console.log("Spawn harvester");
+
         this.spawnCreep(
             [WORK, WORK, CARRY, MOVE], 
-            "harvester"+Memory.creepCount,
+            "harvester"+Date.now(),
             {memory:{
                 role: "harvester",
-                setUp: false,
-                target: targetId,
-                depot: depotId
+                from: fromId,
+                to: toId,
+                setUp: setUp
                 }
             }
         )
-        Memory.creepCount++;
     }
     
-    StructureSpawn.prototype.spawnCourier = function(targetId, depotId) {
+    StructureSpawn.prototype.spawnCourier = function(fromId, toId, resource) {
+        console.log("Spawn courier");
         this.spawnCreep(
-            [CARRY, MOVE, MOVE, MOVE], 
-            "courier"+Memory.creepCount,
+            [CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], 
+            "courier"+Date.now(),
             {memory:{
                 role: "courier",
-                target: targetId,
-                depot: depotId,
-                isWorking: false
+                from: fromId,
+                to: toId,
+                isWorking: false,
+                resource: resource
                 }
             }
         )
-        Memory.creepCount++;
     }
     
-    StructureSpawn.prototype.spawnUpgrader = function() {
-        var targetId = this.room.controller.id;
+    StructureSpawn.prototype.spawnUpgrader = function(fromId, toId, setUp) {
+        console.log("Spawn upgrader");
         
         this.spawnCreep(
             [WORK, WORK, CARRY, MOVE], 
-            "upgrader"+Memory.creepCount,
+            "upgrader"+Date.now(),
             {memory:{
                 role: "upgrader",
-                setUp: false,
-                target: targetId
+                from: fromId,
+                to: toId,
+                setUp: setUp
                 }
             }
         )
-        Memory.creepCount++;
     }
     
-    StructureSpawn.prototype.spawnBuilder = function(targetId) {
+    StructureSpawn.prototype.spawnBuilder = function(fromId) {
+        console.log("Spawn builder");
         this.spawnCreep(
             [WORK, CARRY, MOVE, MOVE], 
-            "builder"+Memory.creepCount,
+            "builder"+Date.now(),
             {memory:{
                 role: "builder",
-                isWorking: false
+                isWorking: false,
+                from: Game.spawns['Spawn1'].id
                 }
             }
         )
-        Memory.creepCount++;
     }
 };

@@ -7,51 +7,27 @@
  * mod.thing == 'a thing'; // true
  */
 var state = require('state');
-
-var findCreepWithoutCourier = function(creepList, courierList){
-    return _.find(creepList, (cr) => {
-        var courier = _.find(courierList, (c) => c.memory.depot === cr.id || c.memory.target === cr.id);
-        console.log("harvester " + cr.name + " has courier " + courier);
-        if(!courier){
-            return cr;
-        }
-    });
-}
+var upgraderLimit = 2;
 
 module.exports = {...state,
     createCreep: function(){
-        var harvesterList = _.filter(Game.creeps, (c) => c.memory.role == 'harvester');
-        var courierList = _.filter(Game.creeps, (c) => c.memory.role == 'courier');
-        var upgraderList = _.filter(Game.creeps, (c) => c.memory.role == 'upgrader');
-        var builderList = _.filter(Game.creeps, (c) => c.memory.role == 'builder');
+        var spawn = Game.spawns["Spawn1"];
+        var controller = spawn.room.controller;
+        var sourceList = spawn.room.find(FIND_SOURCES);
+        var starterHarvesterList = _.filter(Game.creeps, (c) => c.memory.role == 'starter' && c.memory.to == spawn.id);
+        var starterUpgraderList = _.filter(Game.creeps, (c) => c.memory.role == 'starter' && c.memory.to == controller.id);
         
-        if(Game.spawns["Spawn1"].room.energyAvailable >= 250){
-            if(Game.creeps.length === 0){
-                console.log("Spawn starter");
-                Game.spawns["Spawn1"].spawnStarter(Game.spawns["Spawn1"].room.find(FIND_SOURCES)[0].id);
-            }
-            else if(harvesterList.length < 1){
-                console.log("Spawn harvester");
-                Game.spawns["Spawn1"].spawnHarvester(Game.spawns["Spawn1"].room.find(FIND_SOURCES)[0].id);
-            }
-            else if(courierList.length < harvesterList.length + upgraderList.length){
-                var harvester = findCreepWithoutCourier(harvesterList, courierList);
-                if(!!harvester){
-                    console.log("Spawn courier for harvester " + harvester.name);
-                    Game.spawns["Spawn1"].spawnCourier(Game.spawns["Spawn1"].id, harvester.id);
-                } else {
-                    var upgrader = findCreepWithoutCourier(upgraderList, courierList);
-                    console.log("Spawn courier for upgrader " + upgrader.name);
-                    Game.spawns["Spawn1"].spawnCourier(upgrader.id, Game.spawns["Spawn1"].id);
+        if(spawn.room.energyAvailable >= 250){
+            if(starterHarvesterList.length < sourceList.length){
+                for(source of sourceList){
+                    var starter = _.find(starterHarvesterList, (s) => s.memory.from == source.id);
+                    if(!starter){
+                        spawn.spawnStarter(source.id, spawn.id);
+                    }
                 }
-            }
-            else if(upgraderList.length < 1){
-                console.log("Spawn upgrader");
-                Game.spawns["Spawn1"].spawnUpgrader();
-            }
-            else if(builderList.length < 3){
-                console.log("Spawn builder");
-                Game.spawns["Spawn1"].spawnBuilder();
+            }       
+            else if(starterUpgraderList.length < upgraderLimit){
+                spawn.spawnStarter(spawn.id, controller.id);
             }
         } 
     }

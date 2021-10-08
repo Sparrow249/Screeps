@@ -1,21 +1,25 @@
 module.exports = {
     /** @param {Creep} creep**/
     run: function(creep){
-        var target = Game.getObjectById(creep.memory.target);
-        
-        //when spawned, move to source
-		if(creep.memory.setUp === false){
-			creep.moveTo(target);
-			creep.say("🏁");
-			if(creep.pos.isNearTo(target)){
-			    creep.memory.setUp = true;
-			}
+        var to = Game.getObjectById(creep.memory.to);
+        if(!creep.memory.setUp) {
+			creep.memory.setUp = _.find(Game.flags, (flag)=> flag.color == COLOR_YELLOW && flag.pos.inRangeTo(to,2)).pos;
 		}
-        else if(creep.store[RESOURCE_ENERGY] > 0){
-            creep.upgradeController(target);
-        }
-        else{
-            creep.say("❗");
+        
+		if(!creep.pos.isEqualTo(creep.memory.setUp.x, creep.memory.setUp.y)){
+			creep.moveTo(creep.memory.setUp.x, creep.memory.setUp.y);
+			creep.say("🏁");
+		} else{
+            if(creep.store[RESOURCE_ENERGY] > 0){
+                creep.upgradeController(to);
+            }
+            if(!creep.memory.from) {
+                creep.say("❗");
+            }
+            else{
+                var from = Game.getObjectById(creep.memory.from);
+                creep.withdraw(from, RESOURCE_ENERGY);
+            }
         }
     }
 }
